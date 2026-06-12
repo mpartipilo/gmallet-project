@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Action Palette for Gmail — © 2026 Michelangelo Partipilo (Paduq). All rights reserved. -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Action Palette for Gmail — Every Gmail action, one keystroke</title>
+<meta name="description" content="A free Chrome extension that brings VS Code-style keyboard shortcuts and a command palette to Gmail. Archive, label, snooze, jump to any folder, and compose without touching the mouse. A lightweight Superhuman alternative.">
+
+<!-- Open Graph: replace the image URL with your own screenshot or demo still -->
+<meta property="og:title" content="Action Palette for Gmail — Every Gmail action, one keystroke">
+<meta property="og:description" content="VS Code-style keyboard shortcuts for Gmail. Free, private, and fast.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="REPLACE_WITH_OG_IMAGE_URL">
+
+<style>
+  :root {
+    /* Design tokens */
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #1c2330;
+    --border: #2a313c;
+    --border-strong: #3a434f;
+    --text: #e9eef5;
+    --text-muted: #aeb8c4;
+    --text-faint: #8a94a1;
+    --accent: #7c83ff;
+    --accent-strong: #4f46e5;
+    --accent-ink: #ffffff;
+    --success: #3fb950;
+    --kbd-bg: #20262f;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --space-8: 48px;
+    --space-10: 72px;
+    --space-12: 104px;
+
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+    --maxw: 1080px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { line-height: 1.15; font-weight: 650; letter-spacing: -0.02em; margin: 0; }
+  p { margin: 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Visible focus indicator everywhere (WCAG 2.4.7) */
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+  }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 var(--space-5); }
+
+  /* Skip link (keyboard users) */
+  .skip {
+    position: absolute; left: var(--space-4); top: -60px;
+    background: var(--accent-strong); color: var(--accent-ink);
+    padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm);
+    z-index: 100; transition: top .15s ease;
+  }
+  .skip:focus { top: var(--space-4); text-decoration: none; }
+
+  /* Buttons (component with variants + states) */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+    min-height: 48px; padding: 0 var(--space-5);
+    border-radius: var(--radius-md); border: 1px solid transparent;
+    font-size: 1rem; font-weight: 600; font-family: var(--font);
+    cursor: pointer; transition: transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:hover { text-decoration: none; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--accent-strong); color: var(--accent-ink); }
+  .btn-primary:hover { background: #5b53ec; }
+  .btn-secondary { background: var(--surface-2); color: var(--text); border-color: var(--border-strong); }
+  .btn-secondary:hover { background: #232b39; }
+
+  kbd {
+    font-family: var(--mono); font-size: 0.82em;
+    background: var(--kbd-bg); border: 1px solid var(--border-strong);
+    border-bottom-width: 2px; border-radius: var(--radius-sm);
+    padding: 2px 7px; color: var(--text); white-space: nowrap;
+  }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(13,17,23,0.85); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: var(--space-3); font-weight: 700; color: var(--text); font-size: 1.05rem; }
+  .brand:hover { text-decoration: none; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--accent-strong); color: var(--accent-ink);
+    display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 0.95rem;
+  }
+  .nav-links { display: flex; align-items: center; gap: var(--space-5); }
+  .nav-links a { color: var(--text-muted); font-weight: 500; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { padding: 0 var(--space-4); min-height: 44px; }
+  @media (max-width: 720px) { .nav-links .nav-text-link { display: none; } }
+
+  /* Hero */
+  .hero { padding: var(--space-12) 0 var(--space-10); text-align: center; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-size: 0.85rem; font-weight: 600; color: var(--accent);
+    background: rgba(124,131,255,0.10); border: 1px solid rgba(124,131,255,0.25);
+    padding: var(--space-2) var(--space-3); border-radius: 999px; margin-bottom: var(--space-5);
+  }
+  .hero h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); max-width: 14ch; margin: 0 auto var(--space-5); }
+  .hero .accent { color: var(--accent); }
+  .hero .lede { font-size: clamp(1.05rem, 2.2vw, 1.3rem); color: var(--text-muted); max-width: 52ch; margin: 0 auto var(--space-6); }
+  .hero-cta { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; }
+  .hero-note { margin-top: var(--space-4); font-size: 0.9rem; color: var(--text-faint); }
+
+  /* Command palette demo */
+  .palette-stage { margin: var(--space-10) auto 0; max-width: 620px; }
+  .palette {
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg); overflow: hidden; text-align: left;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .palette-search {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border);
+    font-size: 1.05rem;
+  }
+  .palette-search .ico { color: var(--text-faint); flex: none; }
+  .palette-query { color: var(--text); font-family: var(--font); }
+  .palette-caret {
+    display: inline-block; width: 2px; height: 1.1em; background: var(--accent);
+    vertical-align: text-bottom; margin-left: 1px;
+  }
+  .palette-list { padding: var(--space-2); margin: 0; list-style: none; }
+  .palette-row {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4); border-radius: var(--radius-md);
+  }
+  .palette-row .ico { color: var(--text-muted); flex: none; }
+  .palette-row .label { flex: 1; color: var(--text); }
+  .palette-row[data-active="true"] { background: var(--surface-2); }
+  .palette-row[data-active="true"] .ico { color: var(--accent); }
+  .palette-foot {
+    display: flex; gap: var(--space-5); padding: var(--space-3) var(--space-5);
+    border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--text-faint);
+  }
+  .palette-foot span { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+  /* Sections */
+  section { padding: var(--space-10) 0; }
+  .section-head { text-align: center; max-width: 56ch; margin: 0 auto var(--space-8); }
+  .section-head h2 { font-size: clamp(1.6rem, 3.5vw, 2.3rem); margin-bottom: var(--space-3); }
+  .section-head p { color: var(--text-muted); font-size: 1.05rem; }
+
+  .divider { border: 0; border-top: 1px solid var(--border); margin: 0; }
+
+  /* Problem strip */
+  .problem { background: var(--surface); }
+  .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
+  .problem-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-5); }
+  .problem-card p { color: var(--text-muted); }
+  .problem-card strong { color: var(--text); display: block; margin-bottom: var(--space-2); }
+
+  /* Features */
+  .features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+  .feature {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: var(--space-6);
+  }
+  .feature .ficon {
+    width: 44px; height: 44px; border-radius: var(--radius-md);
+    background: rgba(124,131,255,0.12); color: var(--accent);
+    display: grid; place-items: center; margin-bottom: var(--space-4);
+  }
+  .feature h3 { font-size: 1.2rem; margin-bottom: var(--space-2); }
+  .feature p { color: var(--text-muted); }
+  .feature .kbd-row { margin-top: var(--space-4); display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
+  /* How it works */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); counter-reset: step; }
+  .step { text-align: left; }
+  .step .num {
+    width: 36px; height: 36px; border-radius: 999px; background: var(--surface-2);
+    border: 1px solid var(--border-strong); color: var(--accent);
+    display: grid; place-items: center; font-weight: 700; font-family: var(--mono); margin-bottom: var(--space-3);
+  }
+  .step h3 { font-size: 1.1rem; margin-bottom: var(--space-2); }
+  .step p { color: var(--text-muted); }
+
+  /* Privacy */
+  .privacy { background: var(--surface); }
+  .privacy-inner { display: flex; gap: var(--space-6); align-items: center; flex-wrap: wrap; }
+  .privacy-inner .shield {
+    flex: none; width: 64px; height: 64px; border-radius: var(--radius-lg);
+    background: rgba(63,185,80,0.12); color: var(--success); display: grid; place-items: center;
+  }
+  .privacy-inner .copy { flex: 1; min-width: 260px; }
+  .privacy-inner h2 { font-size: 1.6rem; margin-bottom: var(--space-2); }
+  .privacy-inner p { color: var(--text-muted); }
+
+  /* Pricing */
+  .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); align-items: stretch; }
+  .plan {
+    display: flex; flex-direction: column;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: var(--space-5);
+  }
+  .plan.featured { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .plan .tag {
+    align-self: flex-start; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent-strong); padding: 3px 9px; border-radius: 999px; margin-bottom: var(--space-3);
+  }
+  .plan h3 { font-size: 1.05rem; color: var(--text-muted); font-weight: 600; margin-bottom: var(--space-3); }
+  .plan .price { font-size: 2rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+  .plan .price small { font-size: 0.95rem; font-weight: 500; color: var(--text-faint); }
+  .plan .sub { color: var(--text-faint); font-size: 0.88rem; min-height: 2.4em; margin: var(--space-2) 0 var(--space-4); }
+  .plan ul { list-style: none; padding: 0; margin: 0 0 var(--space-5); display: grid; gap: var(--space-2); }
+  .plan li { display: flex; gap: var(--space-2); color: var(--text-muted); font-size: 0.92rem; }
+  .plan li .check { color: var(--success); flex: none; margin-top: 3px; }
+  .plan .btn { width: 100%; margin-top: auto; }
+
+  /* FAQ */
+  .faq { max-width: 760px; margin: 0 auto; }
+  details { border-bottom: 1px solid var(--border); padding: var(--space-4) 0; }
+  summary {
+    cursor: pointer; font-weight: 600; font-size: 1.05rem; color: var(--text);
+    list-style: none; display: flex; justify-content: space-between; align-items: center; gap: var(--space-4);
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .chev { color: var(--text-faint); transition: transform .2s ease; flex: none; }
+  details[open] summary .chev { transform: rotate(180deg); }
+  details p { color: var(--text-muted); margin-top: var(--space-3); }
+
+  /* Final CTA */
+  .final { text-align: center; }
+  .final h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin-bottom: var(--space-4); }
+  .final p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: var(--space-6); }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--border); padding: var(--space-8) 0; color: var(--text-faint); font-size: 0.9rem; }
+  .foot-row { display: flex; justify-content: space-between; gap: var(--space-5); flex-wrap: wrap; align-items: center; }
+  .foot-links { display: flex; gap: var(--space-5); flex-wrap: wrap; }
+  .foot-links a { color: var(--text-muted); }
+  .disclaimer { margin-top: var(--space-5); font-size: 0.8rem; color: var(--text-faint); max-width: 70ch; line-height: 1.5; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .problem-grid, .steps { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Respect reduced-motion (WCAG 2.3.3 / user comfort) */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .palette-caret { animation: none !important; }
+    * { transition: none !important; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .palette-caret { animation: blink 1.05s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Action Palette for Gmail home">
+      <span class="mark" aria-hidden="true">⌘</span>
+      <span>Action Palette for Gmail</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="nav-text-link" href="#features">Features</a>
+      <a class="nav-text-link" href="#pricing">Pricing</a>
+      <a class="nav-text-link" href="#faq">FAQ</a>
+      <!-- Replace with your Chrome Web Store URL -->
+      <a class="btn btn-primary nav-cta" href="REPLACE_WITH_CHROME_STORE_URL">Add to Chrome</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- HERO -->
+  <div id="top"></div>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <span class="eyebrow">Free Chrome extension · A lightweight Superhuman alternative</span>
+      <h1 id="hero-title">Run any Gmail action with <span class="accent">one keystroke</span></h1>
+      <p class="lede">
+        Press <kbd>Cmd</kbd> <kbd>Shift</kbd> <kbd>P</kbd> and search every Gmail action by name.
+        Archive, label, snooze, jump to a folder, or start a reply without ever reaching for the mouse.
+      </p>
+      <div class="hero-cta">
+        <!-- Replace with your Chrome Web Store URL -->
+        <a class="btn btn-primary" href="REPLACE_WITH_CHROME_STORE_URL">Add to Chrome — free</a>
+        <a class="btn btn-secondary" href="#pricing">See pricing</a>
+      </div>
+      <p class="hero-note">Works in Chrome · 14-day full trial · No account needed to start</p>
+
+      <!-- Live palette demo -->
+      <div class="palette-stage">
+        <div class="palette" role="img" aria-label="The command palette open in Gmail, showing a search field and a list of actions such as Archive, Snooze, and Go to label, each with its keyboard shortcut.">
+          <div class="palette-search">
+            <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <span class="palette-query" id="demoQuery">Type a command</span><span class="palette-caret" aria-hidden="true"></span>
+          </div>
+          <ul class="palette-list" id="demoList">
+            <li class="palette-row" data-active="true">
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>
+              <span class="label">Archive conversation</span>
+              <kbd>E</kbd>
+            </li>
+            <li class="palette-row">
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span class="label">Snooze until tomorrow</span>
+              <kbd>B</kbd>
+            </li>
+            <li class="palette-row">
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h7l2 2h9v9a2 2 0 0 1-2 2H3z"/></svg>
+              <span class="label">Go to label…</span>
+              <kbd>G</kbd> <kbd>L</kbd>
+            </li>
+            <li class="palette-row">
+              <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v12H5.2L4 17.2z"/></svg>
+              <span class="label">Compose new email</span>
+              <kbd>C</kbd>
+            </li>
+          </ul>
+          <div class="palette-foot" aria-hidden="true">
+            <span><kbd>↑</kbd> <kbd>↓</kbd> to navigate</span>
+            <span><kbd>↵</kbd> to run</span>
+            <span><kbd>esc</kbd> to close</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="problem" aria-labelledby="problem-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="problem-title">Gmail has powerful shortcuts. You just can't remember them.</h2>
+        <p>The keys exist, but they're invisible. So you reach for the mouse, hunt through menus, and lose your flow dozens of times a day.</p>
+      </div>
+      <div class="problem-grid">
+        <div class="problem-card"><p><strong>You hunt the sidebar</strong>Switching to a label means scanning a list instead of typing its name.</p></div>
+        <div class="problem-card"><p><strong>You forget the keys</strong>Was it <kbd>E</kbd> to archive or <kbd>Y</kbd>? You give up and click.</p></div>
+        <div class="problem-card"><p><strong>You leave the keyboard</strong>Every mouse trip is a small tax on attention that adds up over a day.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" aria-labelledby="features-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="features-title">One palette for everything you do in Gmail</h2>
+        <p>Open it anywhere with <kbd>Cmd</kbd> <kbd>Shift</kbd> <kbd>P</kbd>, type a few letters, and press enter.</p>
+      </div>
+      <div class="features-grid">
+
+        <article class="feature">
+          <div class="ficon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.2L4 17.2z"/><path d="M8 9h8M8 12h5"/></svg></div>
+          <h3>Compose, reply, forward</h3>
+          <p>Start a new message, reply, reply-all, or forward the open thread without leaving the keyboard.</p>
+          <div class="kbd-row"><kbd>C</kbd> <kbd>R</kbd> <kbd>A</kbd> <kbd>F</kbd></div>
+        </article>
+
+        <article class="feature">
+          <div class="ficon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/></svg></div>
+          <h3>Triage at full speed</h3>
+          <p>Archive, delete, mute, mark read or unread, apply a label, or snooze a thread, all from one search box.</p>
+          <div class="kbd-row"><kbd>E</kbd> <kbd>#</kbd> <kbd>L</kbd> <kbd>B</kbd></div>
+        </article>
+
+        <article class="feature">
+          <div class="ficon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+          <h3>Jump anywhere</h3>
+          <p>Type a label, folder, or sender and go straight there. No more scanning the sidebar to switch views.</p>
+          <div class="kbd-row"><kbd>G</kbd> <kbd>L</kbd> <span style="color:var(--text-faint)">then a name</span></div>
+        </article>
+
+        <article class="feature">
+          <div class="ficon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>Learn the shortcut as you go</h3>
+          <p>Every command shows its native Gmail key right beside it. Use the palette today, and you'll have the keys memorized before long.</p>
+          <div class="kbd-row"><kbd>E</kbd> <span style="color:var(--text-faint)">shown next to “Archive”</span></div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- HOW IT WORKS -->
+  <section aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="how-title">Up and running in under a minute</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="num" aria-hidden="true">1</div>
+          <h3>Add it to Chrome</h3>
+          <p>Install from the Chrome Web Store. There's nothing to configure and no account to create.</p>
+        </div>
+        <div class="step">
+          <div class="num" aria-hidden="true">2</div>
+          <h3>Open Gmail and press the keys</h3>
+          <p>Hit <kbd>Cmd</kbd> <kbd>Shift</kbd> <kbd>P</kbd> (or <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>P</kbd> on Windows) and the palette appears.</p>
+        </div>
+        <div class="step">
+          <div class="num" aria-hidden="true">3</div>
+          <h3>Type and go</h3>
+          <p>Search for any action, press enter, and it runs on the thread you're looking at.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="privacy" aria-labelledby="privacy-title">
+    <div class="wrap privacy-inner">
+      <div class="shield" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.4 7.7 8 10 4.6-2.3 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg>
+      </div>
+      <div class="copy">
+        <h2 id="privacy-title">It never reads your email</h2>
+        <p>The palette runs entirely in your browser. It triggers Gmail's own actions through the interface you already use. It does not read, store, index, or send the contents of your messages anywhere.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" aria-labelledby="pricing-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pricing-title">Start free. Pay once, or a little at a time.</h2>
+        <p>The command palette is free forever. Upgrade only if you want custom actions and the extra power features.</p>
+      </div>
+      <div class="pricing-grid">
+
+        <div class="plan">
+          <h3>Free trial</h3>
+          <div class="price">€0</div>
+          <p class="sub">Every feature, 14 days, no card needed.</p>
+          <ul>
+            <li><span class="check" aria-hidden="true">✓</span> Full command palette</li>
+            <li><span class="check" aria-hidden="true">✓</span> All triage &amp; navigation actions</li>
+            <li><span class="check" aria-hidden="true">✓</span> Shortcut hints</li>
+          </ul>
+          <!-- Replace with your Chrome Web Store URL -->
+          <a class="btn btn-secondary" href="REPLACE_WITH_CHROME_STORE_URL">Add to Chrome</a>
+        </div>
+
+        <div class="plan">
+          <h3>Monthly</h3>
+          <div class="price">€1.60<small> /month</small></div>
+          <p class="sub">Low commitment. Cancel anytime.</p>
+          <ul>
+            <li><span class="check" aria-hidden="true">✓</span> Everything in the free palette</li>
+            <li><span class="check" aria-hidden="true">✓</span> Custom actions &amp; macros</li>
+            <li><span class="check" aria-hidden="true">✓</span> Use on unlimited inboxes</li>
+          </ul>
+          <!-- Replace with your Lemon Squeezy monthly checkout URL -->
+          <a class="btn btn-secondary" href="REPLACE_WITH_LEMONSQUEEZY_MONTHLY_URL">Start monthly</a>
+        </div>
+
+        <div class="plan featured">
+          <span class="tag">Best value</span>
+          <h3>Yearly</h3>
+          <div class="price">€12<small> /year</small></div>
+          <p class="sub">That's €1 a month, billed once a year.</p>
+          <ul>
+            <li><span class="check" aria-hidden="true">✓</span> Everything in Monthly</li>
+            <li><span class="check" aria-hidden="true">✓</span> Two months cheaper than monthly</li>
+            <li><span class="check" aria-hidden="true">✓</span> Priority email support</li>
+          </ul>
+          <!-- Replace with your Lemon Squeezy yearly checkout URL -->
+          <a class="btn btn-primary" href="REPLACE_WITH_LEMONSQUEEZY_YEARLY_URL">Get a year</a>
+        </div>
+
+        <div class="plan">
+          <h3>Lifetime</h3>
+          <div class="price">€19<small> once</small></div>
+          <p class="sub">Pay once. Yours forever, no renewals.</p>
+          <ul>
+            <li><span class="check" aria-hidden="true">✓</span> Everything, for good</li>
+            <li><span class="check" aria-hidden="true">✓</span> All future updates</li>
+            <li><span class="check" aria-hidden="true">✓</span> License tied to your account</li>
+          </ul>
+          <!-- Replace with your Lemon Squeezy lifetime checkout URL -->
+          <a class="btn btn-secondary" href="REPLACE_WITH_LEMONSQUEEZY_LIFETIME_URL">Buy lifetime</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- FAQ -->
+  <section id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="faq-title">Questions</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Does it work with my existing Gmail setup?<span class="chev" aria-hidden="true">▾</span></summary>
+          <p>Yes. It runs on top of Gmail, so all your labels, filters, and settings stay exactly as they are. It also plays nicely alongside other Gmail extensions.</p>
+        </details>
+        <details>
+          <summary>Can it read my emails?<span class="chev" aria-hidden="true">▾</span></summary>
+          <p>No. It works locally in your browser and triggers Gmail's own actions. It never reads, stores, or transmits the contents of your messages.</p>
+        </details>
+        <details>
+          <summary>What's the difference between the free and paid versions?<span class="chev" aria-hidden="true">▾</span></summary>
+          <p>The command palette and all the built-in actions are free forever. Paid plans unlock custom actions and macros, where you build your own commands such as "label as Receipts and archive" in a single step.</p>
+        </details>
+        <details>
+          <summary>Which browsers are supported?<span class="chev" aria-hidden="true">▾</span></summary>
+          <p>Chrome today. Edge and other Chromium browsers are on the roadmap.</p>
+        </details>
+        <details>
+          <summary>What happens to the keyboard shortcut Cmd+Shift+P?<span class="chev" aria-hidden="true">▾</span></summary>
+          <p>That opens the palette. It's the same shortcut VS Code uses for its command palette, and it stays clear of Gmail's own editor shortcuts. If it ever clashes with something on your machine, you can remap it.</p>
+        </details>
+        <details>
+          <summary>Can I get a refund?<span class="chev" aria-hidden="true">▾</span></summary>
+          <p>Yes. If a paid plan isn't for you, just ask within 30 days and you'll get your money back.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final" aria-labelledby="final-title">
+    <div class="wrap">
+      <h2 id="final-title">Stop reaching for the mouse</h2>
+      <p>Add the palette to Chrome and run your inbox from the keyboard.</p>
+      <!-- Replace with your Chrome Web Store URL -->
+      <a class="btn btn-primary" href="REPLACE_WITH_CHROME_STORE_URL">Add to Chrome — free</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <span>© 2026 Action Palette for Gmail</span>
+      <nav class="foot-links" aria-label="Footer">
+        <a href="REPLACE_WITH_PRIVACY_URL">Privacy</a>
+        <a href="REPLACE_WITH_TERMS_URL">Terms</a>
+        <a href="REPLACE_WITH_CONTACT_URL">Contact</a>
+      </nav>
+    </div>
+    <p class="disclaimer">
+      Gmail is a trademark of Google LLC. Action Palette for Gmail is an independent extension and is not affiliated with, sponsored by, or endorsed by Google. Superhuman is a trademark of Superhuman Mail, Inc.; it is referenced only for product comparison.
+    </p>
+  </div>
+</footer>
+
+<script>
+  // Lightweight hero demo: cycles a few example queries and highlights the matching row.
+  // Honors prefers-reduced-motion by staying on a static state.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+
+    var queryEl = document.getElementById('demoQuery');
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#demoList .palette-row'));
+    if (!queryEl || !rows.length) return;
+
+    var scenes = [
+      { text: 'archive', row: 0 },
+      { text: 'snooze', row: 1 },
+      { text: 'go to label', row: 2 },
+      { text: 'compose', row: 3 }
+    ];
+
+    var sceneIndex = 0;
+
+    function setActive(i) {
+      rows.forEach(function (r, idx) { r.setAttribute('data-active', idx === i ? 'true' : 'false'); });
+    }
+
+    function typeText(target, done) {
+      var i = 0;
+      queryEl.textContent = '';
+      (function tick() {
+        queryEl.textContent = target.slice(0, i);
+        i++;
+        if (i <= target.length) { setTimeout(tick, 70); }
+        else { setTimeout(done, 1100); }
+      })();
+    }
+
+    function nextScene() {
+      var scene = scenes[sceneIndex % scenes.length];
+      setActive(scene.row);
+      typeText(scene.text, function () {
+        sceneIndex++;
+        nextScene();
+      });
+    }
+
+    setTimeout(nextScene, 900);
+  })();
+</script>
+
+</body>
+</html>
