@@ -3,7 +3,7 @@
 **Every Gmail action, one keystroke.** A command palette for Gmail — press
 `Cmd/Ctrl + Shift + P`, fuzzy-search any action, and run it from the keyboard.
 Archive, label, snooze, reply, jump to any folder, and compose without touching
-the mouse. A fast, private, lightweight alternative to heavyweight email clients.
+the mouse. Fast, private, and lightweight.
 
 🌐 **Website:** https://mpartipilo.github.io/gmallet-project/
 💬 **Feedback & bug reports:** [open an issue](https://github.com/mpartipilo/gmallet-project/issues)
