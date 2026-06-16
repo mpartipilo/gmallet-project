@@ -159,9 +159,10 @@
     display: flex; align-items: center; gap: var(--space-3);
     padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border);
     font-size: 1.05rem;
+    min-height: 60px; white-space: nowrap; overflow: hidden;
   }
   .palette-search .ico { color: var(--text-faint); flex: none; }
-  .palette-query { color: var(--text); font-family: var(--font); }
+  .palette-query { color: var(--text); font-family: var(--font); white-space: nowrap; }
   .palette-caret {
     display: inline-block; width: 2px; height: 1.1em; background: var(--accent);
     vertical-align: text-bottom; margin-left: 1px;
