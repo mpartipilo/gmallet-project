@@ -5,7 +5,7 @@
 Archive, label, snooze, reply, jump to any folder, and compose without touching
 the mouse. Fast, private, and lightweight.
 
-🌐 **Website:** https://mpartipilo.github.io/gmallet-project/
+🌐 **Website:** https://gmallet.paduq.com/
 💬 **Feedback & bug reports:** [open an issue](https://github.com/mpartipilo/gmallet-project/issues)
 
 > This repository is the project's public home — landing page, marketing, and
@@ -43,7 +43,7 @@ Privacy is a core design goal, not an afterthought:
 ## Pricing
 
 A generous **free core**, with an optional **Pro** tier that unlocks the full set
-of actions and power features. See the [website](https://mpartipilo.github.io/gmallet-project/)
+of actions and power features. See the [website](https://gmallet.paduq.com/)
 for current plans.
 
 ## Status
